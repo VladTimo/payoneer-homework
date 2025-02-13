@@ -26,6 +26,8 @@ jobs:
         uses: dawidd6/action-ansible-playbook@v3
         with:
           playbook: install_docker.yml
-          directory: ./.infra/ansible
-          inventory: inventory.ini
+          directory: .infra/ansible
+          inventory:
+            [ec2]
+            ${{ secrets.EC2_HOST }} ansible_user=${{secrets.EC2_USER}} ansible_ssh_private_key_file=~/.ssh/id_rsa
           key: ${{ secrets.SSH_PRIVATE_KEY }}
