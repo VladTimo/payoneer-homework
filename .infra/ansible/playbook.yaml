@@ -1,0 +1,45 @@
+---
+- name: Install Docker on CentOS
+  hosts: all
+  become: true # run as superuser
+  tasks:
+    - name: Install required packages
+      yum:
+        name:
+          - yum-utils # yum tools management package
+        state: present
+
+    - name: Add Docker repository
+      yum_repository:
+        name: docker
+        description: Docker Repository
+        baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
+        gpgcheck: yes
+        enabled: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+
+    - name: Install Docker
+      yum:
+        name:
+          - docker-ce # docker community edition version
+          - docker-ce-cli # dockr cli
+          - containerd.io # build, run, mansge containers
+        state: latest
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add centos to Docker group
+      user:
+        name: centos
+        groups: docker
+        append: yes
+
+    - name: Ensure Docker is running
+      command: docker --version
+      register: docker_version
+      changed_when: false
+
