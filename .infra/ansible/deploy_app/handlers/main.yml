@@ -1,7 +1,5 @@
-#SPDX-License-Identifier: MIT-0
 ---
 # handlers file for deploy-app
----
 - name: Restart the App container
   command: docker-compose up -d --force-recreate
   args:
