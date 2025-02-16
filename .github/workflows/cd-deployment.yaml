@@ -67,7 +67,7 @@ jobs:
         run: |
           pwd
           ls -lah
-          cat ../.infra/ansible/deploment.yml
+          cat ../.infra/ansible/deployment.yml
 
 #      - name: Run Ansible Playbook for Deployment
 #        uses: dawidd6/action-ansible-playbook@v3
