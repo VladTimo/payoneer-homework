@@ -78,7 +78,7 @@ jobs:
           key: ~/.ssh/id_rsa
           inventory: |
             [web]
-            ${{ secrets.EC2_HOST }} ansible_ssh_user=${{ EC2_USER }} ansible_ssh_private_key_file=~/.ssh/id_rsa
+            ${{ secrets.EC2_HOST }} ansible_ssh_user=${{ secrets.EC2_USER }} ansible_ssh_private_key_file=~/.ssh/id_rsa
           options: |
             -e "docker_image_tag=${{ needs.tag-release.outputs.tag }}"
             -e "ec2_host_name=${{ secrets.EC2_HOST }}"
