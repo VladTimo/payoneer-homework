@@ -74,8 +74,8 @@ jobs:
         uses: jawher/action-ansible@2.9.7
         env:
            ANSIBLE_SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        args: ansible-playbook ../.infra/deployment.yml -i ${{ secrets.EC2_HOST }}, -u ${{ secrets.EC2_USER }} -e ec2_host_name=${{ secrets.EC2_HOST }}  -e "docker_image_tag=${{ needs.tag-release.outputs.tag }}"  -e "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}"
-
+        with:
+          args: ansible-playbook ../.infra/deployment.yml -i ${{ secrets.EC2_HOST }}, -u ${{ secrets.EC2_USER }} -e ec2_host_name=${{ secrets.EC2_HOST }}  -e "docker_image_tag=${{ needs.tag-release.outputs.tag }}"  -e "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}"
 
 #      - name: Run Ansible Playbook for Deployment
 #        uses: dawidd6/action-ansible-playbook@v3
