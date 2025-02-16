@@ -30,6 +30,7 @@ jobs:
           git tag $TAG
           git push origin $TAG
           echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "::set-output name=tag::$TAG"
 
   deploy:
     runs-on: ubuntu-latest
@@ -49,8 +50,9 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ env.TAG }} .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ env.TAG }}
+          echo "Using tag: ${{ needs.tag-release.outputs.tag }}"
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }} .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }}
 
       - name: Run Ansible Playbook for Deployment
         uses: dawidd6/action-ansible-playbook@v2
