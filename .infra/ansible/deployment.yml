@@ -1,6 +1,6 @@
 ---
 - name: Deploy App using Role
-  hosts: web
+  hosts: all
   become: true
   roles:
     - deploy_app
