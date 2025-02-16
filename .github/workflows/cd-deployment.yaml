@@ -30,7 +30,7 @@ jobs:
           git tag $TAG
           git push origin $TAG
           echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "::set-output name=tag::$TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
   deploy:
     runs-on: ubuntu-latest
