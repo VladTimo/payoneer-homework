@@ -1,18 +1,31 @@
 # tasks file for deploy-app
 ---
-#- name: Download Docker install script
-#  get_url:
-#    url: https://get.docker.com
-#    dest: /tmp/get-docker.sh
-#    mode: '0755'
-#
-#- name: Run Docker install script
-#  command: sh /tmp/get-docker.sh
+- name: Enable CentOS Vault Repo
+  replace:
+    path: /etc/yum.repos.d/CentOS-Base.repo
+    regexp: '^mirrorlist='
+    replace: '#mirrorlist='
+
+- name: Set CentOS Vault BaseURL
+  replace:
+    path: /etc/yum.repos.d/CentOS-Base.repo
+    regexp: '^#baseurl=http://mirror.centos.org'
+    replace: 'baseurl=http://vault.centos.org'
+
+- name: Disable broken CentOS repos
+  command: yum-config-manager --disable centos-sclo-rh centos-sclo-sclo
+  ignore_errors: yes  # Ignore errors if the repo is already disabled
 
 - name: Add Docker repository
   command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
   args:
     creates: /etc/yum.repos.d/docker-ce.repo
+
+- name: Clean YUM cache
+  command: yum clean all
+
+- name: Make YUM cache
+  command: yum makecache fast
 
 - name: Install Docker and components
   yum:
@@ -20,7 +33,16 @@
       - docker-ce
       - docker-ce-cli
       - containerd.io
+    enablerepo: docker-ce-stable
+    disable_excludes: all
     state: present
+
+- name: Add centos user to docker group
+  user:
+    name: centos
+    groups: docker
+    append: yes
+  become: true
 
 - name: Start and enable Docker service
   systemd:
@@ -44,7 +66,7 @@
   copy:
     dest: "{{ app_directory }}/docker-compose.yml"
     content: |
-      version: '3'
+      version: '3.8'
       services:
         angular-app:
           image: {{ docker_hub_username }}/payoneer-app:{{ docker_image_tag }}
@@ -54,16 +76,14 @@
     owner: centos
     group: centos
     mode: '0644'
-  notify:
-    - Restart the Angular App container
 
 - name: Pull New Docker Image
-  command: docker-compose pull
+  command: /usr/local/bin/docker-compose -f /home/centos/app/docker-compose.yml pull
   args:
     chdir: "{{ app_directory }}"
-
-- name: Cleanup Old Docker Images
-  command: docker image prune -af
+  become: true
+  notify:
+    - Restart the App container
 
 - name: Wait for Application to Start
   wait_for:
