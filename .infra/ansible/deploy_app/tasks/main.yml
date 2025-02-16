@@ -71,7 +71,7 @@
         angular-app:
           image: {{ docker_hub_username }}/payoneer-app:{{ docker_image_tag }}
           ports:
-            - "8080:80"
+            - "80:80"
           restart: always
     owner: centos
     group: centos
