@@ -13,6 +13,9 @@ jobs:
       run:
         working-directory: payoneer
 
+    outputs:
+      tag: ${{ steps.tag_version.outputs.tag }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -22,6 +25,7 @@ jobs:
         run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
 
       - name: Create and Push Tag
+        id: tag_version
         run: |
           TAG="${{ env.VERSION }}-${{ github.run_number }}"
           echo "New Tag: $TAG"
