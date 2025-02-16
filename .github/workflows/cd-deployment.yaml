@@ -70,12 +70,26 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
+      # override need of python 3
+      - name: Install Python 2.7
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python2
+          sudo ln -sf /usr/bin/python2 /usr/bin/python
+
+      - name: Install Ansible 2.9 (Compatible with Python 2.7)
+        run: |
+          python -m pip install --upgrade pip
+          pip install "ansible==2.9.27"
+
       - name: Run Ansible Playbook for Deployment
-        uses: jawher/action-ansible@2.9.7
-        env:
-           ANSIBLE_SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        with:
-          args: ansible-playbook ../.infra/ansible/deployment.yml -i ${{ secrets.EC2_HOST }}, -u ${{ secrets.EC2_USER }} -e ec2_host_name=${{ secrets.EC2_HOST }}  -e "docker_image_tag=${{ needs.tag-release.outputs.tag }}"  -e "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}"
+        run: ansible-playbook -i ${{ secrets.EC2_HOST }}, deployment.yml \
+          --user ${{ secrets.EC2_USER }} \
+          --private-key ~/.ssh/id_rsa \
+          -e "docker_image_tag=${{ needs.tag-release.outputs.tag }}" \
+          -e "ec2_host_name=${{ secrets.EC2_HOST }}" \
+          -e "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}" \
+          -e "ansible_python_interpreter=/usr/bin/python"
 
 #      - name: Run Ansible Playbook for Deployment
 #        uses: dawidd6/action-ansible-playbook@v3
