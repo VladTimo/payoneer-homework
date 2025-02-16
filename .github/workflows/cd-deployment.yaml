@@ -84,3 +84,4 @@ jobs:
             -e "ec2_host_name=${{ secrets.EC2_HOST }}"
             -e "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}"
             -e "ansible_python_interpreter=/usr/bin/python3"
+            --verbose
