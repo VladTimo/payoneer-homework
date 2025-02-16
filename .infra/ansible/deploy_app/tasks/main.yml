@@ -15,13 +15,9 @@
     state: started
     enabled: yes
 
-- name: Ensure Pip is Up-to-Date
-  command: python -m pip install --upgrade pip
-
-- name: Install Docker Compose using Pip
-  pip:
-    name: docker-compose
-    executable: pip
+- name: Install Docker Compose
+  shell: curl -fsSL https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose
+  become: true
 
 - name: Create Application Directory if Not Exists
   file:
