@@ -63,16 +63,21 @@ jobs:
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }} .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }}
 
-      - name: Run Ansible Playbook for Deployment
-        uses: dawidd6/action-ansible-playbook@v3
-        with:
-          playbook: ../.infra/ansible/deployment.yml
-          directory: ../.infra/ansible
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          inventory: |
-            [web]
-            ${{ secrets.EC2_HOST }}
-          options: |
-            -e "docker_image_tag=${{ env.TAG }}"
-            -e "ec2_host_name=${{ secrets.EC2_HOST }}"
-            -e "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}"
+      - name: debug step to be removed
+        run: |
+          pwd
+          ls -lah
+
+#      - name: Run Ansible Playbook for Deployment
+#        uses: dawidd6/action-ansible-playbook@v3
+#        with:
+#          playbook: ../.infra/ansible/deployment.yml
+#          directory: ../.infra/ansible
+#          key: ${{ secrets.SSH_PRIVATE_KEY }}
+#          inventory: |
+#            [web]
+#            ${{ secrets.EC2_HOST }}
+#          options: |
+#            -e "docker_image_tag=${{ env.TAG }}"
+#            -e "ec2_host_name=${{ secrets.EC2_HOST }}"
+#            -e "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}"
