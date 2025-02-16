@@ -73,7 +73,7 @@ jobs:
       # ovveride need of python 3
       - name: Install Ansible 2.9 (Compatible with Python 2.7)
         run: |
-          pip install "ansible==2.9.27" "ansible-base<2.10"
+          pip install "ansible==2.9.27"
 
       - name: Run Ansible Playbook for Deployment
         uses: dawidd6/action-ansible-playbook@v3
