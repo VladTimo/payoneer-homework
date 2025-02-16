@@ -1,6 +1,6 @@
 ---
 # handlers file for deploy-app
 - name: Restart the App container
-  command: docker-compose up -d --force-recreate
+  command: /usr/local/bin/docker-compose -f /home/centos/app/docker-compose.yml up -d --force-recreate
   args:
     chdir: "{{ app_directory }}"

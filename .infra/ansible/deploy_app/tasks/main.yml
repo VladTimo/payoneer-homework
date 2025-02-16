@@ -87,7 +87,7 @@
 
 - name: Wait for Application to Start
   wait_for:
-    port: 8080
+    port: 80
     delay: 10
     timeout: 60
 
