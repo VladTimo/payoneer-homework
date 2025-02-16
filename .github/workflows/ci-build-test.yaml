@@ -1,0 +1,37 @@
+name: CI - Angular App
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - feature/*
+      - hotfix/*
+      - chore/*
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      # require eslint to present with configuration
+      - name: Run Linting
+        run: npm run lint
+
+      # here we can add tests for our aplication
+      - name: Run Tests
+        run: npm test -- --watch=false --browsers=ChromeHeadless
+
+      - name: Build Application
+        run: npm run build --configuration payoneer

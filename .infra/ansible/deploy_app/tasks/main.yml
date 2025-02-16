@@ -1,0 +1,76 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for deploy-app
+---
+- name: Download Docker install script
+  get_url:
+    url: https://get.docker.com
+    dest: /tmp/get-docker.sh
+    mode: '0755'
+
+- name: Run Docker install script
+  command: sh /tmp/get-docker.sh
+
+- name: Start and enable Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Ensure Pip is Up-to-Date
+  command: python -m pip install --upgrade pip
+
+- name: Install Docker Compose using Pip
+  pip:
+    name: docker-compose
+    executable: pip
+
+- name: Create Application Directory if Not Exists
+  file:
+    path: "{{ app_directory }}"
+    state: directory
+    owner: centos
+    group: centos
+    mode: '0755'
+
+- name: Create or Update Docker Compose File
+  copy:
+    dest: "{{ app_directory }}/docker-compose.yml"
+    content: |
+      version: '3'
+      services:
+        angular-app:
+          image: {{ docker_hub_username }}/payoneer-app:{{ docker_image_tag }}
+          ports:
+            - "8080:80"
+          restart: always
+    owner: centos
+    group: centos
+    mode: '0644'
+  notify:
+    - Restart the Angular App container
+
+- name: Pull New Docker Image
+  command: docker-compose pull
+  args:
+    chdir: "{{ app_directory }}"
+
+- name: Cleanup Old Docker Images
+  command: docker image prune -af
+
+- name: Wait for Application to Start
+  wait_for:
+    port: 8080
+    delay: 10
+    timeout: 60
+
+- name: Check Application Status
+  uri:
+    url: "http://{{ ec2_host_name }}/"
+    return_content: yes
+  register: app_response
+  failed_when: "'running' not in app_response.content"
+
+- name: Print Success Message
+  debug:
+    msg: "Application is running successfully!"

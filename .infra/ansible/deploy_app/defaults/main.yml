@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for deploy-app
+docker_hub_username: your_dockerhub_username
+docker_image_tag: latest
+app_directory: /home/centos/app
+ec2_host_name: your-ec2-instance-public-ip
