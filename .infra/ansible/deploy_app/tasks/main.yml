@@ -50,8 +50,18 @@
     state: started
     enabled: yes
 
+- name: Check if Docker Compose is installed
+  stat:
+    path: /usr/local/bin/docker-compose
+  register: docker_compose_stat
+
 - name: Install Docker Compose
-  shell: curl -fsSL https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose
+#  shell: curl -fsSL https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose
+  get_url:
+    url: https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: '0755'
+  when: not docker_compose_stat.stat.exists
   become: true
 
 - name: Create Application Directory if Not Exists
@@ -76,14 +86,9 @@
     owner: centos
     group: centos
     mode: '0644'
+  notify: restart app
 
-- name: Pull New Docker Image
-  command: /usr/local/bin/docker-compose -f /home/centos/app/docker-compose.yml pull
-  args:
-    chdir: "{{ app_directory }}"
-  become: true
-  notify:
-    - Restart the App container
+- meta: flush_handlers
 
 - name: Wait for Application to Start
   wait_for:
@@ -96,8 +101,12 @@
     url: "http://{{ ec2_host_name }}/"
     return_content: yes
   register: app_response
-  failed_when: "'running' not in app_response.content"
+  failed_when: app_response.status != 200
 
 - name: Print Success Message
   debug:
     msg: "Application is running successfully!"
+
+- name: Remove old images
+  command: docker image prune -a -f
+  become: true

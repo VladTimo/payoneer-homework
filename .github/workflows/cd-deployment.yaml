@@ -93,19 +93,5 @@ jobs:
             --extra-vars "ansible_python_interpreter=/usr/bin/python2.7" \
             --user ${{ secrets.EC2_USER }} \
             --private-key ~/.ssh/id_rsa
-
-
-#      - name: Run Ansible Playbook for Deployment
-#        uses: dawidd6/action-ansible-playbook@v3
-#        with:
-#          playbook: deployment.yml
-#          directory: .infra/ansible
-#          key: ~/.ssh/id_rsa
-#          inventory: |
-#            [web]
-#            ${{ secrets.EC2_HOST }} ansible_ssh_user=${{ secrets.EC2_USER }} ansible_ssh_private_key_file=~/.ssh/id_rsa
-#          options: |
-#            -e "docker_image_tag=${{ needs.tag-release.outputs.tag }}"
-#            -e "ec2_host_name=${{ secrets.EC2_HOST }}"
-#            -e "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}"
-#            -e "ansible_python_interpreter=/usr/bin/python3"
+#      if ansible run failed we can create rollback process
+#      instead of rollback process we can use blue-green deployemnt with load balancer
