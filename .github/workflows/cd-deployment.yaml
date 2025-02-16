@@ -63,18 +63,19 @@ jobs:
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }} .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }}
 
-      - name: debug step to be removed
+      - name: Set up SSH Key
         run: |
-          pwd
-          ls -lah
-          cat ../.infra/ansible/deployment.yml
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: Run Ansible Playbook for Deployment
         uses: dawidd6/action-ansible-playbook@v3
         with:
           playbook: deployment.yml
           directory: .infra/ansible
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ~/.ssh/id_rsa
           inventory: |
             [web]
             ${{ secrets.EC2_HOST }} ansible_ssh_user=centos ansible_ssh_private_key_file=~/.ssh/id_rsa
