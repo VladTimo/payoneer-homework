@@ -1,0 +1,122 @@
+name: CD - Deploy to EC2
+
+on:
+  push:
+    branches:
+      - master
+#      - chore/* # for debug and for Gods of Demo
+    pull_request:
+      types:
+        - closed
+
+jobs:
+  if_merged:
+    if: github.event.pull_request.merged == true
+
+  tag-release:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: payoneer
+
+    outputs:
+      tag: ${{ steps.tag_version.outputs.tag }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install --quiet
+
+      - name: Bump Version
+        id: version
+        run: |
+          NEW_VERSION=$(npm version patch -m "chore: bump version to %s" | sed 's/v//')
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "New version: $NEW_VERSION"
+
+      - name: Commit and Push Version Change
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git commit -am "chore: bump version to $NEW_VERSION"
+          git push origin master
+
+      - name: Create and Push Tag
+        id: tag_version
+        run: |
+          TAG="${{ env.NEW_VERSION }}-${{ github.run_number }}"
+          echo "New Tag: $TAG"
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git tag $TAG
+          git push origin $TAG
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: payoneer
+
+    needs: tag-release
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and Push Docker Image
+        run: |
+          echo "Using tag: ${{ needs.tag-release.outputs.tag }}"
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }} .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }}
+
+      - name: Set up SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Upgrade pip for Python 3.8
+        run: |
+          python -m ensurepip --default-pip
+          python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install Ansible 2.9.27
+        run: |
+          python -m pip install 'ansible==2.9.27'
+
+      - name: Run Ansible Playbook for Deployment
+        run: |
+          ansible-playbook -i "${{ secrets.EC2_HOST }}," ../.infra/ansible/deployment.yml \
+            --extra-vars "docker_image_tag=${{ needs.tag-release.outputs.tag }}" \
+            --extra-vars "ec2_host_name=${{ secrets.EC2_HOST }}" \
+            --extra-vars "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}" \
+            --extra-vars "ansible_python_interpreter=/usr/bin/python2.7" \
+            --user ${{ secrets.EC2_USER }} \
+            --private-key ~/.ssh/id_rsa
+#      if ansible run failed we can create rollback process
+#      instead of rollback process we can use blue-green deployemnt with load balancer

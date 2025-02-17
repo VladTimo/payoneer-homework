@@ -1,0 +1,112 @@
+# tasks file for deploy-app
+---
+- name: Enable CentOS Vault Repo
+  replace:
+    path: /etc/yum.repos.d/CentOS-Base.repo
+    regexp: '^mirrorlist='
+    replace: '#mirrorlist='
+
+- name: Set CentOS Vault BaseURL
+  replace:
+    path: /etc/yum.repos.d/CentOS-Base.repo
+    regexp: '^#baseurl=http://mirror.centos.org'
+    replace: 'baseurl=http://vault.centos.org'
+
+- name: Disable broken CentOS repos
+  command: yum-config-manager --disable centos-sclo-rh centos-sclo-sclo
+  ignore_errors: yes  # Ignore errors if the repo is already disabled
+
+- name: Add Docker repository
+  command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+
+- name: Clean YUM cache
+  command: yum clean all
+
+- name: Make YUM cache
+  command: yum makecache fast
+
+- name: Install Docker and components
+  yum:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    enablerepo: docker-ce-stable
+    disable_excludes: all
+    state: present
+
+- name: Add centos user to docker group
+  user:
+    name: centos
+    groups: docker
+    append: yes
+  become: true
+
+- name: Start and enable Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Check if Docker Compose is installed
+  stat:
+    path: /usr/local/bin/docker-compose
+  register: docker_compose_stat
+
+- name: Install Docker Compose
+#  shell: curl -fsSL https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose
+  get_url:
+    url: https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: '0755'
+  when: not docker_compose_stat.stat.exists
+  become: true
+
+- name: Create Application Directory if Not Exists
+  file:
+    path: "{{ app_directory }}"
+    state: directory
+    owner: centos
+    group: centos
+    mode: '0755'
+
+- name: Create or Update Docker Compose File
+  copy:
+    dest: "{{ app_directory }}/docker-compose.yml"
+    content: |
+      version: '3.8'
+      services:
+        angular-app:
+          image: {{ docker_hub_username }}/payoneer-app:{{ docker_image_tag }}
+          ports:
+            - "80:80"
+          restart: always
+    owner: centos
+    group: centos
+    mode: '0644'
+  notify: restart app
+
+- meta: flush_handlers
+
+- name: Wait for Application to Start
+  wait_for:
+    port: 80
+    delay: 10
+    timeout: 60
+
+- name: Check Application Status
+  uri:
+    url: "http://{{ ec2_host_name }}/"
+    return_content: yes
+  register: app_response
+  failed_when: app_response.status != 200
+
+- name: Print Success Message
+  debug:
+    msg: "Application is running successfully!"
+
+- name: Remove old images
+  command: docker image prune -a -f
+  become: true
