@@ -3,14 +3,14 @@ name: CI - Angular App
 on:
   pull_request:
     branches:
-      - main
-  push:
-    branches:
-      - feature/*
-      - hotfix/*
-      - chore/*
+      - master  # The target branch of the PR
+    types:
+      - opened
+      - synchronize
+      - reopened
     paths:
       - "payoneer/**"
+  workflow_dispatch:
 
 jobs:
   build-and-test:
