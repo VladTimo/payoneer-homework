@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-#      - chore/* # for debug and for Gods of Demo
+      - chore/* # for debug and for Gods of Demo
     pull_request:
       types:
         - closed
@@ -27,14 +27,32 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Get Current Version
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install --quiet
+
+      - name: Bump Version
         id: version
-        run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
+        run: |
+          NEW_VERSION=$(npm version patch -m "chore: bump version to %s" | sed 's/v//')
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "New version: $NEW_VERSION"
+
+      - name: Commit and Push Version Change
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git commit -am "chore: bump version to $NEW_VERSION"
+          git push origin master
 
       - name: Create and Push Tag
         id: tag_version
         run: |
-          TAG="${{ env.VERSION }}-${{ github.run_number }}"
+          TAG="${{ env.NEW_VERSION }}-${{ github.run_number }}"
           echo "New Tag: $TAG"
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
