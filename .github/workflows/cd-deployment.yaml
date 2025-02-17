@@ -3,15 +3,15 @@ name: CD - Deploy to EC2
 on:
   push:
     branches:
-#      - master
-      - chore/* # for debug and for Gods of Demo
-#    pull_request:
-#      types:
-#        - closed
+      - master
+#      - chore/* # for debug and for Gods of Demo
+    pull_request:
+      types:
+        - closed
 
 jobs:
-#  if_merged:
-#    if: github.event.pull_request.merged == true
+  if_merged:
+    if: github.event.pull_request.merged == true
 
   tag-release:
     runs-on: ubuntu-latest
