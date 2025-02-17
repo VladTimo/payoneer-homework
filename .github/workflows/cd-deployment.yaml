@@ -9,9 +9,9 @@ on:
 #      types:
 #        - closed
 
-jobs:
-  if_merged:
-    if: github.event.pull_request.merged == true
+#jobs:
+#  if_merged:
+#    if: github.event.pull_request.merged == true
 
   tag-release:
     runs-on: ubuntu-latest
