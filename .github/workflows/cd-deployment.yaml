@@ -3,11 +3,11 @@ name: CD - Deploy to EC2
 on:
   push:
     branches:
-      - master
+#      - master
       - chore/* # for debug and for Gods of Demo
-    pull_request:
-      types:
-        - closed
+#    pull_request:
+#      types:
+#        - closed
 
 jobs:
   if_merged:
