@@ -6,11 +6,7 @@ on:
       - master
     paths:
       - "payoneer/**"
-  pull_request:
-    types:
-      - closed
-    paths:
-      - "payoneer/**"
+  workflow_dispatch:
 
 jobs:
   tag-release:
