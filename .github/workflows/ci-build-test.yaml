@@ -9,6 +9,8 @@ on:
       - feature/*
       - hotfix/*
       - chore/*
+    paths:
+      - "payoneer/**"
 
 jobs:
   build-and-test:

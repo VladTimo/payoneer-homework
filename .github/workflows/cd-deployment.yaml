@@ -4,10 +4,14 @@ on:
   push:
     branches:
       - master
-#      - chore/* # for debug and for Gods of Demo
-    pull_request:
-      types:
-        - closed
+    paths:
+      - "payoneer/**"
+  pull_request:
+    types:
+      - closed
+    paths:
+      - "payoneer/**"
+
 
 jobs:
   tag-release:
