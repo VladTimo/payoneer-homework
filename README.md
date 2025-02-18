@@ -114,12 +114,3 @@ this part is commneted (not required for this project) but for production grade 
     * post build testing - validate post build artifact functioning 
    
 4. Roll back procedure in case we have failed deployment
-
-
-
-
-
-
-
-
-
