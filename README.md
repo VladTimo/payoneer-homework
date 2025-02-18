@@ -56,6 +56,7 @@ CI Steps:
  - create local branch and make your changes
  - update application version in `package.json`
  - create PR from you local branch to master
+ - fill in PR information in the description
  - `build-and-test` check based on `CI - Angular App` workflow will run and perform:
     * code quality check - check code quality and code security using SonarQube (see Improvements part, not enabled)
     * npm linter - code linter check (see Improvements part, not enabled)
