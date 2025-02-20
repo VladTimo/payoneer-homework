@@ -20,11 +20,30 @@ jobs:
 
     outputs:
       tag: ${{ steps.tag_version.outputs.tag }}
+      deploy_env: ${{ steps.set_env.outputs.deploy_env }}
+      deploy_port: ${{ steps.set_env.outputs.deploy_port }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set Environment Variables
+        id: set_env
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          if [[ "$BRANCH" == "dev" ]]; then
+            echo "deploy_env=dev" >> $GITHUB_ENV
+            echo "deploy_port=8081" >> $GITHUB_ENV
+          elif [[ "$BRANCH" == "rc" ]]; then
+            echo "deploy_env=rc" >> $GITHUB_ENV
+            echo "deploy_port=8082" >> $GITHUB_ENV
+          else
+            echo "deploy_env=prod" >> $GITHUB_ENV
+            echo "deploy_port=80" >> $GITHUB_ENV
+          fi
+          echo "deploy_env=${{ env.deploy_env }}" >> $GITHUB_OUTPUT
+          echo "deploy_port=${{ env.deploy_port }}" >> $GITHUB_OUTPUT
+      
       - name: Get Current Version
         id: version
         run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
@@ -124,6 +143,7 @@ jobs:
             --extra-vars "ec2_host_name=${{ secrets.EC2_HOST }}" \
             --extra-vars "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}" \
             --extra-vars "ansible_python_interpreter=/usr/bin/python2.7" \
+            --extra-vars "deploy_env=${{ needs.tag-release.outputs.deploy_env }}" \
             --user ${{ secrets.EC2_USER }} \
             --private-key ~/.ssh/id_rsa
 #      if ansible run failed we can create rollback process
