@@ -100,7 +100,7 @@ smoke tsting, sanity tsting, e2e tsting, integration tsting, load testing
 
 2. Code linetr should run and check for any syntax errors, formatting issues
 3. Auto versioning using `npm version` and temp branch to push `packages.json`
-   
+
 4. As for current project no code quality and test are enabled. In the CI workflow
 this part is commneted (not required for this project) but for production grade project it should be enabled.
  - SonarQube is example for code quality tool can be connectd and provide code quality and code security report. 
@@ -115,3 +115,4 @@ this part is commneted (not required for this project) but for production grade 
     * post build testing - validate post build artifact functioning 
    
 5. Roll back procedure in case we have failed deployment
+6. Add Dependabot for alerts on dependencies versions, security issues
