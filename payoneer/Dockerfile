@@ -4,7 +4,7 @@ ARG APP_PORT=8080
 ENV APP_PORT=${APP_PORT}
 
 WORKDIR /usr/src/app
-COPY package*.json ./
+COPY payoneer/package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build --configuration payoneer
