@@ -91,23 +91,6 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      # - name: Set Environment Variables
-      #   run: |
-      #     if [[ "${{ github.ref_name }}" == "dev" ]]; then
-      #       echo "APP_PORT=8081" >> $GITHUB_ENV
-      #     elif [[ "${{ github.ref_name }}" == "rc" ]]; then
-      #       echo "APP_PORT=8082" >> $GITHUB_ENV
-      #     else
-      #       echo "APP_PORT=8080" >> $GITHUB_ENV
-      #     fi
-      #     echo "IMAGE_TAG=$(echo ${{ github.ref_name }} | tr '/' '-')" >> $GITHUB_ENV
-
-      # - name: Build and Push Docker Image
-      #   run: |
-      #     echo "Using tag: ${{ needs.tag-release.outputs.tag }}"
-      #     docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }} .
-      #     docker push ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }}
-
       - name: Build and push Docker image
         run: |
           echo "Using tag: ${{ needs.tag-release.outputs.tag }}"

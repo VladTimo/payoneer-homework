@@ -72,43 +72,6 @@
     group: centos
     mode: '0755'
 
-# - name: Create or Update Docker Compose File
-#   copy:
-#     dest: "{{ app_directory }}/docker-compose.yml"
-#     content: |
-#       version: '3.8'
-#       services:
-#         angular-app:
-#           image: {{ docker_hub_username }}/payoneer-app:{{ docker_image_tag }}
-#           ports:
-#             - "80:80"
-#           restart: always
-#     owner: centos
-#     group: centos
-#     mode: '0644'
-#   notify: restart app
-
-# - name: Create or Update Docker Compose File
-#   copy:
-#     dest: "{{ app_directory }}/docker-compose.yml"
-#     content: |
-#       version: '3.8'
-#       services:
-#         angular-app:
-#           image: {{ docker_hub_username }}/payoneer-app:{{ docker_image_tag }}
-#           ports:
-#             {% if 'dev' in docker_image_tag %}
-#             - "8081:80"
-#             {% elif 'rc' in docker_image_tag %}
-#             - "8082:80"
-#             {% else %}
-#             - "80:80"
-#             {% endif %}
-#           restart: always
-#     owner: centos
-#     group: centos
-#     mode: '0644'
-#   notify: restart app
 - name: Create or Update Base Docker Compose File
   copy:
     dest: "{{ app_directory }}/docker-compose.yml"
