@@ -74,10 +74,10 @@ jobs:
         with:
           images: vladislavtimofeev/payoneer-napp
           tags: |
-            type=raw,value=${{ env.version }}-${{ github.run_number }},enable={{is_default_branch}}
-            type=raw,value=${{ env.version }}-${{ github.run_number }}-staging,enable={{is_branch}} && {{branch}} == 'staging'
-            type=raw,value=${{ env.version }}-${{ github.run_number }}-development,enable={{is_branch}} && {{branch}} == 'development'
-            type=raw,value=${{ env.version }}-${{ github.run_number }}-${{ env.branch }}
+            type=raw,value=${{ env.version }}-${{ github.run_number }},enable=${{ github.ref_name == 'master' }}
+            type=raw,value=${{ env.version }}-${{ github.run_number }}-staging,enable=${{ github.ref_name == 'staging' }}
+            type=raw,value=${{ env.version }}-${{ github.run_number }}-development,enable=${{ github.ref_name == 'development' }}
+            type=raw,value=${{ env.version }}-${{ github.run_number }}-${{ github.ref_name }}
 
       
       - name: Set up Docker Buildx
