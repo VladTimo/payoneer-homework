@@ -1,12 +1,21 @@
 name: Build, Push, and Deploy Multibranch
 
+# on:
+#   push:
+#     branches:
+#       - master
+#       - staging
+#       - development
+#       - feature-*
+
 on:
-  push:
+  pull_request:
     branches:
-      - master
-      - staging
-      - development
-      - feature-*
+      - ench/git_branch_flow
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 # on:
 #   pull_request:
