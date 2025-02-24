@@ -143,10 +143,10 @@ jobs:
       - name: Run Ansible Playbook for Deployment
         run: |
           ansible-playbook -i "${{ secrets.EC2_HOST }}," .infra/ansible/deployment.yml \
-            --extra-vars "docker_image_tag=${{ env.VERSION }}-${{ env.BRANCH }}" \
+            --extra-vars "docker_image_tag=${{ needs.build.outputs.version }}-${{ github.run_number }}-${{ needs.build.outputs.branch_name }}" \
             --extra-vars "ec2_host_name=${{ secrets.EC2_HOST }}" \
             --extra-vars "docker_hub_username=${{ secrets.DOCKER_USERNAME }}" \
             --extra-vars "ansible_python_interpreter=/usr/bin/python2.7" \
-            --extra-vars "deploy_env=${{ env.BRANCH }}" \
+            --extra-vars "deploy_env=${{ needs.build.outputs.branch_name }}" \
             --user ${{ secrets.EC2_USER }} \
             --private-key ~/.ssh/id_rsa
