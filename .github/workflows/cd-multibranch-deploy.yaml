@@ -54,7 +54,6 @@ jobs:
       - name: Set Environment Variables
         id: set_env
         run: |
-          BRANCH="${GITHUB_REF#refs/heads/}"
           if [[ "${{ steps.branch_name.outputs.current_branch }}" == "development" ]]; then
             echo "deploy_port=8081" >> $GITHUB_ENV
           elif [[ "${{ steps.branch_name.outputs.current_branch }}" == "staging" ]]; then
@@ -71,7 +70,7 @@ jobs:
       - name: Export Outputs
         run: |
           echo "version=${{ env.version }}" >> $GITHUB_OUTPUT
-          echo "branch=${{ env.branch }}" >> $GITHUB_OUTPUT
+          echo "branch=${{ steps.branch_name.outputs.current_branch }}" >> $GITHUB_OUTPUT
 
       
       - name: Extract Metadata (Tags, Labels)
@@ -80,10 +79,10 @@ jobs:
         with:
           images: vladislavtimofeev/payoneer-napp
           tags: |
-            type=raw,value=${{ env.VERSION }}-${{ github.run_number }},enable=${{ steps.branch_name.outputs.current_branch == 'master' }}
-            type=raw,value=${{ env.VERSION }}-${{ github.run_number }}-staging,enable=${{ steps.branch_name.outputs.current_branch == 'staging' }}
-            type=raw,value=${{ env.VERSION }}-${{ github.run_number }}-development,enable=${{ steps.branch_name.outputs.current_branch == 'development' }}
-            type=raw,value=${{ env.VERSION }}-${{ github.run_number }}-${{ steps.branch_name.outputs.current_branch }}
+            type=raw,value=${{ env.version }}-${{ github.run_number }},enable=${{ steps.branch_name.outputs.current_branch == 'master' }}
+            type=raw,value=${{ env.version }}-${{ github.run_number }}-staging,enable=${{ steps.branch_name.outputs.current_branch == 'staging' }}
+            type=raw,value=${{ env.version }}-${{ github.run_number }}-development,enable=${{ steps.branch_name.outputs.current_branch == 'development' }}
+            type=raw,value=${{ env.version }}-${{ github.run_number }}-${{ steps.branch_name.outputs.current_branch }}
 
     
       - name: Set up Docker Buildx
