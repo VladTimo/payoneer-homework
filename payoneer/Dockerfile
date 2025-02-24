@@ -11,7 +11,7 @@ RUN npm run build --configuration payoneer
 
 FROM nginx:1.27.4-alpine-slim
 COPY --from=build /usr/src/app/dist/payoneer /usr/share/nginx/html
-COPY ../nginx.conf /etc/nginx/nginx.conf
+COPY payoneer/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE ${APP_PORT}
 CMD ["nginx", "-g", "daemon off;"]
