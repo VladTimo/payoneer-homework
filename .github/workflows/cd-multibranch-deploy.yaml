@@ -85,18 +85,7 @@ jobs:
             type=raw,value=${{ env.VERSION }}-${{ github.run_number }}-development,enable=${{ steps.branch_name.outputs.current_branch == 'development' }}
             type=raw,value=${{ env.VERSION }}-${{ github.run_number }}-${{ steps.branch_name.outputs.current_branch }}
 
-      - name: Extract Metadata (Tags, Labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: vladislavtimofeev/payoneer-napp
-          tags: |
-            type=raw,value=${{ env.version }}-${{ github.run_number }},enable=${{ github.ref_name == 'master' }}
-            type=raw,value=${{ env.version }}-${{ github.run_number }}-staging,enable=${{ github.ref_name == 'staging' }}
-            type=raw,value=${{ env.version }}-${{ github.run_number }}-development,enable=${{ github.ref_name == 'development' }}
-            type=raw,value=${{ env.version }}-${{ github.run_number }}-${{ github.ref_name }}
-
-      
+    
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
