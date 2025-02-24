@@ -34,6 +34,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: payoneer
+    
     outputs:
       version: ${{ steps.package_version.outputs.version }}
       branch_name: ${{ steps.branch_name.outputs.branch }}
@@ -42,13 +47,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Extract Branch Name
+        id: branch_name
+        uses: tj-actions/branch-names@v8
+            
       - name: Set Environment Variables
         id: set_env
         run: |
           BRANCH="${GITHUB_REF#refs/heads/}"
-          if [[ "$BRANCH" == "development" ]]; then
+          if [[ "${{ steps.branch_name.outputs.current_branch }}" == "development" ]]; then
             echo "deploy_port=8081" >> $GITHUB_ENV
-          elif [[ "$BRANCH" == "rc" ]]; then
+          elif [[ "${{ steps.branch_name.outputs.current_branch }}" == "staging" ]]; then
             echo "deploy_port=8082" >> $GITHUB_ENV
           else
             echo "deploy_port=80" >> $GITHUB_ENV
@@ -59,14 +68,22 @@ jobs:
         id: package_version
         run: echo "version=$(jq -r .version package.json)" >> $GITHUB_ENV
 
-      - name: Get Branch Name
-        id: branch_name
-        run: echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
-
       - name: Export Outputs
         run: |
           echo "version=${{ env.version }}" >> $GITHUB_OUTPUT
           echo "branch=${{ env.branch }}" >> $GITHUB_OUTPUT
+
+      
+      - name: Extract Metadata (Tags, Labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: vladislavtimofeev/payoneer-napp
+          tags: |
+            type=raw,value=${{ env.VERSION }}-${{ github.run_number }},enable=${{ steps.branch_name.outputs.current_branch == 'master' }}
+            type=raw,value=${{ env.VERSION }}-${{ github.run_number }}-staging,enable=${{ steps.branch_name.outputs.current_branch == 'staging' }}
+            type=raw,value=${{ env.VERSION }}-${{ github.run_number }}-development,enable=${{ steps.branch_name.outputs.current_branch == 'development' }}
+            type=raw,value=${{ env.VERSION }}-${{ github.run_number }}-${{ steps.branch_name.outputs.current_branch }}
 
       - name: Extract Metadata (Tags, Labels)
         id: meta
