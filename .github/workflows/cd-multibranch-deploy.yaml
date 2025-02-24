@@ -142,7 +142,7 @@ jobs:
 
       - name: Run Ansible Playbook for Deployment
         run: |
-          ansible-playbook -i "${{ secrets.EC2_HOST }}," ../.infra/ansible/deployment.yml \
+          ansible-playbook -i "${{ secrets.EC2_HOST }}," .infra/ansible/deployment.yml \
             --extra-vars "docker_image_tag=${{ env.VERSION }}-${{ env.BRANCH }}" \
             --extra-vars "ec2_host_name=${{ secrets.EC2_HOST }}" \
             --extra-vars "docker_hub_username=${{ secrets.DOCKER_USERNAME }}" \
