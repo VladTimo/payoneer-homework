@@ -3,7 +3,9 @@ name: CI - Angular App
 on:
   pull_request:
     branches:
-      - master  # The target branch of the PR
+      - master
+      - dev
+      - rc  
     types:
       - opened
       - synchronize

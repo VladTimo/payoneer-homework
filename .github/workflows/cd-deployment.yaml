@@ -3,6 +3,8 @@ name: CD - Deploy to EC2
 on:
   push:
     branches:
+      - dev
+      - rc
       - master
     paths:
       - "payoneer/**"
@@ -18,19 +20,48 @@ jobs:
 
     outputs:
       tag: ${{ steps.tag_version.outputs.tag }}
+      deploy_env: ${{ steps.set_env.outputs.deploy_env }}
+      deploy_port: ${{ steps.set_env.outputs.deploy_port }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set Environment Variables
+        id: set_env
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          if [[ "$BRANCH" == "dev" ]]; then
+            echo "deploy_env=dev" >> $GITHUB_ENV
+            echo "deploy_port=8081" >> $GITHUB_ENV
+          elif [[ "$BRANCH" == "rc" ]]; then
+            echo "deploy_env=rc" >> $GITHUB_ENV
+            echo "deploy_port=8082" >> $GITHUB_ENV
+          else
+            echo "deploy_env=prod" >> $GITHUB_ENV
+            echo "deploy_port=80" >> $GITHUB_ENV
+          fi
+          echo "deploy_env=${{ env.deploy_env }}" >> $GITHUB_OUTPUT
+          echo "deploy_port=${{ env.deploy_port }}" >> $GITHUB_OUTPUT
+      
       - name: Get Current Version
         id: version
         run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
 
+      - name: Determine Tag Prefix
+        run: |
+          if [[ "${{ github.ref_name }}" == "dev" ]]; then
+            echo "TAG_PREFIX=dev-" >> $GITHUB_ENV
+          elif [[ "${{ github.ref_name }}" == "rc" ]]; then
+            echo "TAG_PREFIX=rc-" >> $GITHUB_ENV
+          else
+            echo "TAG_PREFIX=" >> $GITHUB_ENV
+          fi
+
       - name: Create and Push Tag
         id: tag_version
         run: |
-          TAG="${{ env.VERSION }}-${{ github.run_number }}"
+          TAG="${{ env.TAG_PREFIX }}${{ env.VERSION }}-${{ github.run_number }}"
           echo "New Tag: $TAG"
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
@@ -60,11 +91,12 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Build and Push Docker Image
+      - name: Build and push Docker image
         run: |
           echo "Using tag: ${{ needs.tag-release.outputs.tag }}"
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }} .
+          docker build --build-arg APP_PORT=${{ needs.tag-release.outputs.deploy_port }} -t ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }} .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/payoneer-app:${{ needs.tag-release.outputs.tag }}
+
 
       - name: Set up SSH Key
         run: |
@@ -94,6 +126,7 @@ jobs:
             --extra-vars "ec2_host_name=${{ secrets.EC2_HOST }}" \
             --extra-vars "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}" \
             --extra-vars "ansible_python_interpreter=/usr/bin/python2.7" \
+            --extra-vars "deploy_env=${{ needs.tag-release.outputs.deploy_env }}" \
             --user ${{ secrets.EC2_USER }} \
             --private-key ~/.ssh/id_rsa
 #      if ansible run failed we can create rollback process

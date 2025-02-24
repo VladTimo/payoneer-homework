@@ -1,7 +1,10 @@
 ---
-# handlers file for deploy-app
-- name: Restart and Pull Docker Image
+# - name: Deploy Docker Compose Stack
+#   listen: "restart app"
+#   command: /usr/local/bin/docker-compose -f /home/centos/app/docker-compose.yml -f /home/centos/app/docker-compose.{{ deploy_env }}.yml up -d --force-recreate
+#   become: true
+
+- name: Deploy Docker Compose Stack
   listen: "restart app"
-  command: >
-    /usr/local/bin/docker-compose -f /home/centos/app/docker-compose.yml up -d --force-recreate
+  command: /usr/local/bin/docker-compose -f /home/centos/app/docker-compose.{{ deploy_env }}.yml up -d --force-recreate
   become: true
