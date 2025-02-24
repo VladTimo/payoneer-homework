@@ -42,6 +42,7 @@ jobs:
     outputs:
       version: ${{ steps.export_vars.outputs.version }}
       branch_name: ${{ steps.export_vars.outputs.branch }}
+      deploy_port: ${{ steps.export_vars.outputs.deploy_port }}
 
     steps:
       - name: Checkout Repository
@@ -61,8 +62,7 @@ jobs:
           else
             echo "deploy_port=80" >> $GITHUB_ENV
           fi
-          echo "deploy_port=${{ env.deploy_port }}" >> $GITHUB_OUTPUT
-      
+          
       - name: Extract Version from package.json
         id: package_version
         run: echo "version=$(jq -r .version package.json)" >> $GITHUB_ENV
@@ -72,6 +72,8 @@ jobs:
         run: |
           echo "version=${{ env.version }}" >> $GITHUB_OUTPUT
           echo "branch=${{ steps.branch_name.outputs.current_branch }}" >> $GITHUB_OUTPUT
+          echo "deploy_port=${{ env.deploy_port }}" >> $GITHUB_OUTPUT
+      
 
       
       - name: Extract Metadata (Tags, Labels)
@@ -146,8 +148,9 @@ jobs:
           ansible-playbook -i "${{ secrets.EC2_HOST }}," .infra/ansible/deployment.yml \
             --extra-vars "docker_image_tag=${{ needs.build.outputs.version }}-${{ github.run_number }}-${{ needs.build.outputs.branch_name }}" \
             --extra-vars "ec2_host_name=${{ secrets.EC2_HOST }}" \
-            --extra-vars "docker_hub_username=${{ secrets.DOCKER_USERNAME }}" \
+            --extra-vars "docker_hub_username=${{ secrets.DOCKER_HUB_USERNAME }}" \
             --extra-vars "ansible_python_interpreter=/usr/bin/python2.7" \
             --extra-vars "deploy_env=${{ needs.build.outputs.branch_name }}" \
+            --extra-vars "deploy_port=${{ needs.build.outputs.deploy_port }}"
             --user ${{ secrets.EC2_USER }} \
             --private-key ~/.ssh/id_rsa
